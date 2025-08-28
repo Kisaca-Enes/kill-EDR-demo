@@ -1,26 +1,26 @@
 # -------------------------------
 # C# kodunu inline ekleme (Memory + DLL)
 # -------------------------------
-$source = @"
+$source = @'
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 public class ProcessHelper
 {
-    [DllImport(""ntdll.dll"")]
+    [DllImport("ntdll.dll")]
     public static extern uint NtSuspendProcess(IntPtr processHandle);
 
-    [DllImport(""ntdll.dll"")]
+    [DllImport("ntdll.dll")]
     public static extern uint NtResumeProcess(IntPtr processHandle);
 
-    [DllImport(""kernel32.dll"")]
+    [DllImport("kernel32.dll")]
     public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
 
-    [DllImport(""kernel32.dll"", SetLastError = true)]
+    [DllImport("kernel32.dll", SetLastError = true)]
     public static extern bool WriteProcessMemory(IntPtr hProcess, IntPtr lpBaseAddress, byte[] lpBuffer, UIntPtr nSize, out UIntPtr lpNumberOfBytesWritten);
 
-    [DllImport(""kernel32.dll"")]
+    [DllImport("kernel32.dll")]
     public static extern int VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, uint dwLength);
 
     [StructLayout(LayoutKind.Sequential)]
@@ -51,7 +51,7 @@ public class ProcessHelper
             Process[] processes = Process.GetProcessesByName(processName);
             if(processes.Length == 0)
             {
-                Console.WriteLine($"{processName} bulunamadi.");
+                Console.WriteLine($"Process {processName} bulunamadi.");
                 continue;
             }
 
@@ -61,7 +61,7 @@ public class ProcessHelper
             try
             {
                 NtSuspendProcess(hProcess);
-                Console.WriteLine($"{processName} durduruldu.");
+                Console.WriteLine($"Process {processName} durduruldu.");
 
                 IntPtr addr = IntPtr.Zero;
                 MEMORY_BASIC_INFORMATION mbi;
@@ -86,7 +86,7 @@ public class ProcessHelper
             finally
             {
                 NtResumeProcess(hProcess);
-                Console.WriteLine($"{processName} tekrar çalıştırıldı.");
+                Console.WriteLine($"Process {processName} tekrar çalıştırıldı.");
             }
         }
     }
@@ -96,7 +96,7 @@ public class ProcessHelper
         Process[] processes = Process.GetProcessesByName(processName);
         if(processes.Length == 0)
         {
-            Console.WriteLine($""Process {processName} bulunamadi!"");
+            Console.WriteLine($"Process {processName} bulunamadi!");
             return;
         }
 
@@ -106,28 +106,28 @@ public class ProcessHelper
         try
         {
             NtSuspendProcess(hProcess);
-            Console.WriteLine($""Process {processName} durduruldu. Critical DLL’ler geçici olarak etkisiz."");
+            Console.WriteLine($"Process {processName} durduruldu. Critical DLL’ler geçici olarak etkisiz.");
 
             foreach(ProcessModule module in target.Modules)
             {
                 if(Array.Exists(criticalDlls, d => d.Equals(module.ModuleName, StringComparison.OrdinalIgnoreCase)))
                 {
-                    Console.WriteLine($""Critical DLL loaded: {module.ModuleName}"");
+                    Console.WriteLine($"Critical DLL loaded: {module.ModuleName}");
                 }
             }
         }
         catch(Exception ex)
         {
-            Console.WriteLine($""Hata: {ex.Message}"");
+            Console.WriteLine($"Hata: {ex.Message}");
         }
         finally
         {
             NtResumeProcess(hProcess);
-            Console.WriteLine($""Process {processName} tekrar çalıştırıldı."");
+            Console.WriteLine($"Process {processName} tekrar çalıştırıldı.");
         }
     }
 }
-"@
+'@
 
 # -------------------------------
 # Derle
